@@ -1,37 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useHistory } from "react-router-dom";
+import React, { useState } from 'react';
+import { useHistory } from "react-router-dom";
 import axios from 'axios';
 
- const initial = {
+const initial = {
   title: '',
   director: '',
   metascore: '',
   stars: ['', '', ''],
 }
 
-const UpdateMovie = ({ movieList, setMovieList }) => {
-  const [ movie, setMovie ] = useState(initial);
-  const params = useParams();
+const AddMovie = ({ movieList, setMovieList }) => {
+  const [movie, setMovie] = useState(initial);
   const { push } = useHistory();
 
-  const fetchMovie = (id) => {
-    axios
-      .get(`http://localhost:5000/api/movies/${id}`)
-      .then((res) => setMovie(res.data))
-      .catch((err) => console.log(err.response));
-  };
-
-  useEffect(() => {
-    fetchMovie(params.id);
-  }, [params.id])
-
   const handleChange = e => {
-    if(e.target.name === 'stars') {
+    if (e.target.name === 'stars') {
       const newStars = movie.stars.map((star, id) => {
         if (Number(e.target.id) === id) return e.target.value;
         return star;
       })
-      setMovie({...movie, [e.target.name]: newStars, })
+      setMovie({ ...movie, [e.target.name]: newStars, })
     } else {
       setMovie({ ...movie, [e.target.name]: e.target.value, })
     }
@@ -40,16 +28,10 @@ const UpdateMovie = ({ movieList, setMovieList }) => {
   const handleSubmit = e => {
     e.preventDefault();
     axios
-      .put(`http://localhost:5000/api/movies/${params.id}`, movie)
-      .then((res) => console.log(res))
+      .post(`http://localhost:5000/api/movies`, movie)
+      .then((res) => setMovieList(res.data))
       .catch((err) => console.log(err.response));
 
-    const newMovieList = movieList.map(e => {
-      if(Number(e.id) === Number(params.id)) return movie;
-      return e;
-    });
-
-    setMovieList(newMovieList);
     push('/');
   }
 
@@ -57,31 +39,36 @@ const UpdateMovie = ({ movieList, setMovieList }) => {
     <form className="update-movie" onSubmit={handleSubmit}>
       <input
         name="title"
+        placeholder="Title"
         value={movie.title}
         onChange={handleChange}
       />
       <input
         name="director"
+        placeholder="Director"
         value={movie.director}
         onChange={handleChange}
       />
       <input
         name="metascore"
+        placeholder="Metascore"
         value={movie.metascore}
         onChange={handleChange}
       />
       {movie.stars.map((star, id) => {
-        return (<input
+        return (
+        <input
           key={id}
           name="stars"
+          placeholder={`Star ${id + 1}`}
           id={id}
           value={star}
           onChange={handleChange}
         />)
       })}
-      <button>Update</button>
+      <button>Add Movie</button>
     </form>
   );
 }
 
-export default UpdateMovie;
+export default AddMovie;
